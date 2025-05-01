@@ -3,17 +3,19 @@ import 'package:flutter/material.dart';
 void main() => runApp(ChequeProtegidoApp());
 
 class ChequeProtegidoApp extends StatelessWidget {
+  const ChequeProtegidoApp({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Protección de Cheques',
-      home: ChequeInputPage(),
-    );
+    return MaterialApp(title: 'Protección de Cheques', home: ChequeInputPage());
   }
 }
 
 class ChequeInputPage extends StatefulWidget {
+  const ChequeInputPage({super.key});
+
   @override
+  // ignore: library_private_types_in_public_api
   _ChequeInputPageState createState() => _ChequeInputPageState();
 }
 
@@ -31,16 +33,32 @@ class _ChequeInputPageState extends State<ChequeInputPage> {
   String _formatearCheque(String valor) {
     try {
       double num = double.parse(valor);
-      // Limita el número de caracteres si es demasiado grande
-      if (num >= 1000000) return 'ERROR'; // Evita números más grandes de 8 caracteres
+      if (num >= 1000000) return 'Numeros hasta 9999';
 
-      // Formatea con 2 decimales y coma como separador decimal
-      String str = num.toStringAsFixed(2).replaceAll('.', ',');
+      // Redondear a 2 decimales y separar parte entera y decimal
+      String entero = num.truncate().toString();
+      String decimal = (num - num.truncate()).toStringAsFixed(2).split('.')[1];
 
-      // Asegura que el total tenga 8 caracteres con asteriscos a la izquierda
-      return str.padLeft(8, '*');
+      // Insertar puntos de miles manualmente
+      StringBuffer buffer = StringBuffer();
+      int count = 0;
+      for (int i = entero.length - 1; i >= 0; i--) {
+        buffer.write(entero[i]);
+        count++;
+        if (count % 3 == 0 && i != 0) {
+          buffer.write('.');
+        }
+      }
+
+      String enteroFormateado = buffer.toString().split('').reversed.join();
+
+      String finalString = '$enteroFormateado,$decimal';
+
+      if (finalString.length > 8) return 'Numeros hasta 9999';
+
+      return finalString.padLeft(8, '*');
     } catch (e) {
-      return 'ERROR';
+      return 'Ingrese un numero valido';
     }
   }
 
@@ -75,14 +93,15 @@ class _ChequeInputPageState extends State<ChequeInputPage> {
                   padding: const EdgeInsets.all(10.0),
                   child: Text(
                     _chequeProtegido!,
-                    style: TextStyle(fontSize: 32, letterSpacing: 4, fontFamily: 'Courier'),
+                    style: TextStyle(
+                      fontSize: 32,
+                      letterSpacing: 4,
+                      fontFamily: 'Courier',
+                    ),
                   ),
                 ),
               SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: _reset,
-                child: Text('Limpiar'),
-              ),
+              ElevatedButton(onPressed: _reset, child: Text('Limpiar')),
             ],
           ),
         ),
